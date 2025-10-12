@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useForm, Controller } from 'react-hook-form';
 import { Furnish, View, type Flat, type House } from '../../types/models';
+import { furnishLabels, viewLabels } from '../../utils/enumLabels';
 
 interface FlatFormData {
     name: string;
@@ -63,7 +64,7 @@ export const FlatForm: FC<Props> = ({
             numberOfRooms: 1,
             livingSpace: 0,
             furnish: Furnish.FINE,
-            view: View.STREET,
+            view: View.YARD,
             houseId: undefined,
         },
     });
@@ -81,7 +82,7 @@ export const FlatForm: FC<Props> = ({
                 numberOfRooms: initialData.numberOfRooms || 1,
                 livingSpace: initialData.livingSpace || 0,
                 furnish: initialData.furnish || Furnish.FINE,
-                view: initialData.view || View.STREET,
+                view: initialData.view || View.YARD,
                 houseId: initialData.house?.id,
             });
         }
@@ -330,20 +331,4 @@ export const FlatForm: FC<Props> = ({
             </VStack>
         </form>
     );
-};
-
-// Метки для значений перечислений
-const furnishLabels: Record<Furnish, string> = {
-    [Furnish.DESIGNER]: 'Дизайнерская',
-    [Furnish.FINE]: 'Хорошая',
-    [Furnish.BAD]: 'Плохая',
-    [Furnish.LITTLE]: 'Минимальная',
-};
-
-const viewLabels: Record<View, string> = {
-    [View.STREET]: 'На улицу',
-    [View.YARD]: 'Во двор',
-    [View.BAD]: 'Плохой',
-    [View.GOOD]: 'Хороший',
-    [View.TERRIBLE]: 'Ужасный',
 };

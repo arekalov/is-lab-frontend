@@ -1,10 +1,10 @@
 import { type FC, useEffect, useState, useCallback } from 'react';
-import { Box, Heading, Spinner, Center } from '@chakra-ui/react';
+import { Box, Heading, Spinner, Center, Button } from '@chakra-ui/react';
+import { AddIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { FlatsTable } from '../components/FlatsTable/FlatsTable';
 import { DeleteFlatDialog } from '../components/DeleteFlatDialog/DeleteFlatDialog';
 import { flatsService } from '../services/flatsService';
-// import { useWebSocket } from '../hooks/useWebSocket'; // временно отключаем
 import type { Flat } from '../types/models';
 import { useSnackbar } from 'notistack';
 
@@ -72,9 +72,6 @@ export const HomePage: FC = () => {
         loadFlats();
     }, [loadFlats]);
 
-    // Временно отключаем WebSocket
-    // useWebSocket(loadFlats);
-
     // Сбрасываем страницу при изменении фильтров
     useEffect(() => {
         setPage(0);
@@ -135,7 +132,16 @@ export const HomePage: FC = () => {
 
     return (
         <Box>
-            <Heading mb={6}>Список квартир</Heading>
+            <Box mb={6} display="flex" justifyContent="space-between" alignItems="center">
+                <Heading>Список квартир</Heading>
+                <Button
+                    leftIcon={<AddIcon />}
+                    colorScheme="blue"
+                    onClick={() => navigate('/flats/create')}
+                >
+                    Добавить квартиру
+                </Button>
+            </Box>
             
             {loading ? (
                 <Center p={8}>

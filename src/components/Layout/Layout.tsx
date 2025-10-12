@@ -15,6 +15,7 @@ import {
     Heading,
     Button,
     useColorModeValue,
+    Divider,
 } from '@chakra-ui/react';
 import { HamburgerIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -22,9 +23,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const SIDEBAR_WIDTH = '240px';
 
 const menuItems = [
-    { text: 'Главная', path: '/' },
+    { text: 'Квартиры', path: '/' },
+    { text: 'Дома', path: '/houses' },
+    { divider: true },
+    { text: 'Добавить квартиру', path: '/flats/create' },
+    { text: 'Добавить дом', path: '/houses/create' },
+    { divider: true },
     { text: 'Специальные операции', path: '/special' },
-    { text: 'Добавить квартиру', path: '/flats/new' },
 ];
 
 interface Props {
@@ -42,20 +47,24 @@ export const Layout: FC<Props> = ({ children }) => {
 
     const NavContent = () => (
         <VStack spacing={4} align="stretch" w="full">
-            {menuItems.map((item) => (
-                <Button
-                    key={item.path}
-                    variant={location.pathname === item.path ? 'solid' : 'ghost'}
-                    onClick={() => {
-                        navigate(item.path);
-                        onClose();
-                    }}
-                    w="full"
-                    justifyContent="flex-start"
-                >
-                    {item.text}
-                </Button>
-            ))}
+            {menuItems.map((item, index) => 
+                item.divider ? (
+                    <Divider key={`divider-${index}`} />
+                ) : (
+                    <Button
+                        key={item.path}
+                        variant={location.pathname === item.path ? 'solid' : 'ghost'}
+                        onClick={() => {
+                            navigate(item.path!);
+                            onClose();
+                        }}
+                        w="full"
+                        justifyContent="flex-start"
+                    >
+                        {item.text}
+                    </Button>
+                )
+            )}
         </VStack>
     );
 
@@ -80,7 +89,7 @@ export const Layout: FC<Props> = ({ children }) => {
                     onClick={onOpen}
                     variant="ghost"
                 />
-                <Heading size="md" ml={4}>Управление квартирами</Heading>
+                <Heading size="md" ml={4}>Управление недвижимостью</Heading>
                 <IconButton
                     aria-label="Toggle color mode"
                     icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
@@ -114,7 +123,7 @@ export const Layout: FC<Props> = ({ children }) => {
                 display={{ base: 'none', md: 'block' }}
             >
                 <Flex direction="column" h="full" p={4}>
-                    <Heading size="md" mb={8}>Управление квартирами</Heading>
+                    <Heading size="md" mb={8}>Управление недвижимостью</Heading>
                     <NavContent />
                     <IconButton
                         aria-label="Toggle color mode"

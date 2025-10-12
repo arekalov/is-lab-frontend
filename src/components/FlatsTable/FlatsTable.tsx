@@ -19,6 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { ChevronUpIcon, ChevronDownIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import type { Flat } from '../../types/models';
+import { furnishLabels, viewLabels } from '../../utils/enumLabels';
 
 interface Props {
     flats: Flat[];
@@ -74,8 +75,18 @@ const columns: Column[] = [
     { id: 'timeToMetroOnFoot', label: 'До метро (мин)', minWidth: 100 },
     { id: 'numberOfRooms', label: 'Комнат', minWidth: 100 },
     { id: 'livingSpace', label: 'Жилая площадь', minWidth: 100 },
-    { id: 'furnish', label: 'Мебель', minWidth: 100 },
-    { id: 'view', label: 'Вид', minWidth: 100 },
+    { 
+        id: 'furnish', 
+        label: 'Мебель', 
+        minWidth: 100,
+        format: (value) => furnishLabels[value] || value
+    },
+    { 
+        id: 'view', 
+        label: 'Вид', 
+        minWidth: 100,
+        format: (value) => viewLabels[value] || value
+    },
     { 
         id: 'house', 
         label: 'Дом', 
