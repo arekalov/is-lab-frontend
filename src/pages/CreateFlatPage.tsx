@@ -28,10 +28,14 @@ export const CreateFlatPage: FC = () => {
         try {
             setIsLoading(true);
             await flatsService.createFlat(data);
-            navigate('/'); // Возвращаемся на главную страницу после успешного создания
+            navigate('/');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleHousesUpdate = (updatedHouses: House[]) => {
+        setHouses(updatedHouses);
     };
 
     return (
@@ -41,6 +45,7 @@ export const CreateFlatPage: FC = () => {
                 onSubmit={handleSubmit}
                 availableHouses={houses}
                 isLoading={isLoading}
+                onHousesUpdate={handleHousesUpdate}
             />
         </Box>
     );

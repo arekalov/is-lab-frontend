@@ -9,6 +9,7 @@ import {
     Button,
     FormErrorMessage,
     useToast,
+    ButtonGroup,
 } from '@chakra-ui/react';
 import { useForm, Controller } from 'react-hook-form';
 import type { House } from '../../types/models';
@@ -23,12 +24,14 @@ interface Props {
     onSubmit: (data: HouseFormData) => Promise<void>;
     initialData?: House;
     isLoading?: boolean;
+    onCancel?: () => void;
 }
 
 export const HouseForm: FC<Props> = ({
     onSubmit,
     initialData,
     isLoading = false,
+    onCancel,
 }) => {
     const toast = useToast();
     const {
@@ -118,14 +121,20 @@ export const HouseForm: FC<Props> = ({
                     <FormErrorMessage>{errors.numberOfFlatsOnFloor?.message}</FormErrorMessage>
                 </FormControl>
 
-                <Button
-                    type="submit"
-                    colorScheme="blue"
-                    isLoading={isLoading}
-                    mt={4}
-                >
-                    {initialData ? 'Сохранить' : 'Создать'}
-                </Button>
+                <ButtonGroup spacing={3} mt={4}>
+                    <Button
+                        type="submit"
+                        colorScheme="blue"
+                        isLoading={isLoading}
+                    >
+                        {initialData ? 'Сохранить' : 'Создать'}
+                    </Button>
+                    {onCancel && (
+                        <Button onClick={onCancel} isDisabled={isLoading}>
+                            Отмена
+                        </Button>
+                    )}
+                </ButtonGroup>
             </VStack>
         </form>
     );
