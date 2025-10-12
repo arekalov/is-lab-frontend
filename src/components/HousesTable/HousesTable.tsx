@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import { type FC, useState, useMemo } from 'react';
 import {
     Table,
     Thead,
@@ -15,6 +15,8 @@ import {
     useColorModeValue,
     Alert,
     AlertIcon,
+    Input,
+    VStack,
 } from '@chakra-ui/react';
 import { ChevronUpIcon, ChevronDownIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import type { House } from '../../types/models';
@@ -39,12 +41,61 @@ const columns: Column[] = [
     { id: 'numberOfFlatsOnFloor', label: 'Квартир на этаже', minWidth: 100 },
 ];
 
+interface SortConfig {
+    field: keyof House;
+    direction: 'asc' | 'desc';
+}
+
+interface Filters {
+    name: string;
+    year: string;
+    numberOfFlatsOnFloor: string;
+}
+
 export const HousesTable: FC<Props> = ({
     houses,
     onEdit,
     onDelete
 }) => {
     const borderColor = useColorModeValue('gray.200', 'gray.700');
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'id', direction: 'asc' });
+    const [filters, setFilters] = useState<Filters>({
+        name: '',
+        year: '',
+        numberOfFlatsOnFloor: '',
+    });
+
+    const handleSort = (field: keyof House) => {
+        setSortConfig(current => ({
+            field,
+            direction: current.field === field && current.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
+
+    const filteredAndSortedHouses = useMemo(() => {
+        return [...houses]
+            .filter(house => {
+                const nameMatch = house.name.toLowerCase().includes(filters.name.toLowerCase());
+                const yearMatch = !filters.year || house.year.toString().includes(filters.year);
+                const flatsMatch = !filters.numberOfFlatsOnFloor || 
+                    house.numberOfFlatsOnFloor.toString().includes(filters.numberOfFlatsOnFloor);
+                return nameMatch && yearMatch && flatsMatch;
+            })
+            .sort((a, b) => {
+                const aValue = a[sortConfig.field];
+                const bValue = b[sortConfig.field];
+                
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return sortConfig.direction === 'asc' 
+                        ? aValue.localeCompare(bValue)
+                        : bValue.localeCompare(aValue);
+                }
+                
+                return sortConfig.direction === 'asc'
+                    ? (aValue > bValue ? 1 : -1)
+                    : (bValue > aValue ? 1 : -1);
+            });
+    }, [houses, sortConfig, filters]);
 
     if (!Array.isArray(houses)) {
         console.error('Houses is not an array:', houses);
@@ -57,56 +108,88 @@ export const HousesTable: FC<Props> = ({
     }
 
     return (
-        <Box overflowX="auto" borderWidth={1} borderRadius="lg" borderColor={borderColor}>
-            <Table variant="simple">
-                <Thead>
-                    <Tr>
-                        {columns.map((column) => (
-                            <Th key={column.id} minW={column.minWidth}>
-                                <Text>{column.label}</Text>
-                            </Th>
-                        ))}
-                        <Th>Действия</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {houses.length === 0 ? (
+        <VStack spacing={4} align="stretch">
+            {/* Фильтры */}
+            <HStack spacing={4}>
+                <Input
+                    placeholder="Поиск по названию"
+                    value={filters.name}
+                    onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
+                />
+                <Input
+                    placeholder="Поиск по году"
+                    value={filters.year}
+                    onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value }))}
+                />
+                <Input
+                    placeholder="Поиск по кол-ву квартир"
+                    value={filters.numberOfFlatsOnFloor}
+                    onChange={(e) => setFilters(prev => ({ ...prev, numberOfFlatsOnFloor: e.target.value }))}
+                />
+            </HStack>
+
+            {/* Таблица */}
+            <Box overflowX="auto" borderWidth={1} borderRadius="lg" borderColor={borderColor}>
+                <Table variant="simple">
+                    <Thead>
                         <Tr>
-                            <Td colSpan={columns.length + 1} textAlign="center">
-                                Нет данных
-                            </Td>
+                            {columns.map((column) => (
+                                <Th
+                                    key={column.id}
+                                    minW={column.minWidth}
+                                    cursor="pointer"
+                                    onClick={() => handleSort(column.id)}
+                                >
+                                    <HStack spacing={2}>
+                                        <Text>{column.label}</Text>
+                                        {sortConfig.field === column.id && (
+                                            sortConfig.direction === 'asc' ? <ChevronUpIcon /> : <ChevronDownIcon />
+                                        )}
+                                    </HStack>
+                                </Th>
+                            ))}
+                            <Th>Действия</Th>
                         </Tr>
-                    ) : (
-                        houses.map((house) => (
-                            <Tr key={house.id}>
-                                {columns.map((column) => (
-                                    <Td key={column.id}>
-                                        {column.format ? column.format(house[column.id]) : String(house[column.id] ?? '-')}
-                                    </Td>
-                                ))}
-                                <Td>
-                                    <ButtonGroup size="sm" variant="ghost">
-                                        <Tooltip label="Редактировать">
-                                            <IconButton
-                                                aria-label="Редактировать"
-                                                icon={<EditIcon />}
-                                                onClick={() => onEdit(house)}
-                                            />
-                                        </Tooltip>
-                                        <Tooltip label="Удалить">
-                                            <IconButton
-                                                aria-label="Удалить"
-                                                icon={<DeleteIcon />}
-                                                onClick={() => onDelete(house)}
-                                            />
-                                        </Tooltip>
-                                    </ButtonGroup>
+                    </Thead>
+                    <Tbody>
+                        {filteredAndSortedHouses.length === 0 ? (
+                            <Tr>
+                                <Td colSpan={columns.length + 1} textAlign="center">
+                                    Нет данных
                                 </Td>
                             </Tr>
-                        ))
-                    )}
-                </Tbody>
-            </Table>
-        </Box>
+                        ) : (
+                            filteredAndSortedHouses.map((house) => (
+                                <Tr key={house.id}>
+                                    {columns.map((column) => (
+                                        <Td key={column.id}>
+                                            {column.format ? column.format(house[column.id]) : String(house[column.id] ?? '-')}
+                                        </Td>
+                                    ))}
+                                    <Td>
+                                        <ButtonGroup size="sm" variant="ghost">
+                                            <Tooltip label="Редактировать">
+                                                <IconButton
+                                                    aria-label="Редактировать"
+                                                    icon={<EditIcon />}
+                                                    onClick={() => onEdit(house)}
+                                                />
+                                            </Tooltip>
+                                            <Tooltip label="Удалить">
+                                                <IconButton
+                                                    aria-label="Удалить"
+                                                    icon={<DeleteIcon />}
+                                                    onClick={() => onDelete(house)}
+                                                />
+                                            </Tooltip>
+                                        </ButtonGroup>
+                                    </Td>
+                                </Tr>
+                            ))
+                        )}
+                    </Tbody>
+                </Table>
+            </Box>
+        </VStack>
     );
 };
