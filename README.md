@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# Управление недвижимостью
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-приложение для управления квартирами и домами. Разработано с использованием React, TypeScript и Chakra UI.
 
-Currently, two official plugins are available:
+## Основные возможности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🏠 **Управление домами**
+  - Просмотр списка домов
+  - Добавление, редактирование и удаление домов
+  - Отслеживание количества квартир на этаже
 
-## React Compiler
+- 🏢 **Управление квартирами**
+  - Просмотр списка квартир с пагинацией
+  - Добавление, редактирование и удаление квартир
+  - Привязка квартир к домам
+  - Фильтрация и сортировка по различным параметрам
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 🔍 **Специальные операции**
+  - Поиск квартир по названию
+  - Фильтрация по количеству комнат
+  - Поиск по жилой площади
+  - Поиск самой дешевой квартиры с балконом
+  - Сортировка по времени до метро
 
-## Expanding the ESLint configuration
+## Технологии
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- ⚛️ React 18
+- 🔷 TypeScript
+- ⚡ Vite
+- 🎨 Chakra UI
+- 🛣️ React Router
+- 🔄 Axios
+- 📝 React Hook Form
+- 🔔 Notistack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Запуск проекта
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# Установка зависимостей
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Запуск в режиме разработки
+npm run dev
+
+# Сборка для продакшена
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Структура проекта
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── components/     # React компоненты
+├── pages/         # Страницы приложения
+├── services/      # API сервисы
+├── types/         # TypeScript типы
+└── utils/         # Утилиты и конфигурация
+```
+
+## Требования
+
+- Node.js 18+
+- npm 9+
+- Бэкенд API на порту 28600
+
+## Особенности
+
+- 🌓 Поддержка темной темы
+- 📱 Адаптивный дизайн
+- 🔄 Real-time обновления данных
+- 🎯 Валидация форм
+- 📝 Информативные сообщения об ошибках

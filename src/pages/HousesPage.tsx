@@ -1,8 +1,9 @@
 import { type FC, useEffect, useState } from 'react';
-import { Box, Heading, Button, useDisclosure, Spinner, Center } from '@chakra-ui/react';
+import { Box, Heading, Button, Spinner, Center } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { HousesTable } from '../components/HousesTable/HousesTable';
+import { DeleteHouseDialog } from '../components/DeleteHouseDialog/DeleteHouseDialog';
 import { housesService } from '../services/housesService';
 import type { House } from '../types/models';
 import { useSnackbar } from 'notistack';
@@ -12,6 +13,11 @@ export const HousesPage: FC = () => {
     const { enqueueSnackbar } = useSnackbar();
     const [houses, setHouses] = useState<House[]>([]);
     const [loading, setLoading] = useState(false);
+
+    // Состояние для диалога удаления
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [houseToDelete, setHouseToDelete] = useState<House | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const loadHouses = async () => {
         try {
@@ -38,19 +44,34 @@ export const HousesPage: FC = () => {
         }
     };
 
-    const handleDelete = async (house: House) => {
-        if (!house.id) return;
+    const handleDelete = (house: House) => {
+        setHouseToDelete(house);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!houseToDelete?.id) return;
 
         try {
-            await housesService.deleteHouse(house.id);
+            setDeleteLoading(true);
+            await housesService.deleteHouse(houseToDelete.id);
             enqueueSnackbar('Дом успешно удален', { variant: 'success' });
+            setDeleteDialogOpen(false);
+            setHouseToDelete(null);
             loadHouses();
         } catch (error) {
             enqueueSnackbar(
                 error instanceof Error ? error.message : 'Ошибка при удалении дома',
                 { variant: 'error' }
             );
+        } finally {
+            setDeleteLoading(false);
         }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteDialogOpen(false);
+        setHouseToDelete(null);
     };
 
     return (
@@ -75,6 +96,16 @@ export const HousesPage: FC = () => {
                     houses={houses}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                />
+            )}
+
+            {houseToDelete && (
+                <DeleteHouseDialog
+                    house={houseToDelete}
+                    isOpen={deleteDialogOpen}
+                    isLoading={deleteLoading}
+                    onClose={handleDeleteCancel}
+                    onConfirm={handleDeleteConfirm}
                 />
             )}
         </Box>
