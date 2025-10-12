@@ -48,7 +48,25 @@ export const EditFlatPage: FC = () => {
 
         try {
             setIsLoading(true);
-            await flatsService.updateFlat(Number(id), data);
+            // Преобразуем данные перед отправкой
+            const updateData = {
+                name: data.name,
+                coordinates: {
+                    x: Number(data.coordinates.x),
+                    y: Number(data.coordinates.y)
+                },
+                area: Number(data.area),
+                price: Number(data.price),
+                balcony: Boolean(data.balcony),
+                timeToMetroOnFoot: Number(data.timeToMetroOnFoot),
+                numberOfRooms: Number(data.numberOfRooms),
+                livingSpace: Number(data.livingSpace),
+                furnish: data.furnish,
+                view: data.view,
+                houseId: data.houseId ? Number(data.houseId) : null
+            };
+            
+            await flatsService.updateFlat(Number(id), updateData);
             enqueueSnackbar('Квартира успешно обновлена', { variant: 'success' });
             navigate('/');
         } catch (error) {
