@@ -1,53 +1,52 @@
 import { useEffect, useCallback } from 'react';
-import { io } from 'socket.io-client';
-import { WS_URL } from '../utils/config';
 import { useSnackbar } from 'notistack';
+import { websocketService } from '../services/websocketService';
+import type { WebSocketType, WebSocketUpdate } from '../types/websocket';
 
-type WebSocketEvent = 'flat:created' | 'flat:updated' | 'flat:deleted';
+interface UseWebSocketOptions {
+  onDataChange?: () => void;
+  showNotifications?: boolean;
+}
 
-export const useWebSocket = (onDataChange: () => void) => {
+export const useWebSocket = (type: WebSocketType, options: UseWebSocketOptions = {}) => {
+    const { onDataChange, showNotifications = true } = options;
     const { enqueueSnackbar } = useSnackbar();
 
-    const handleEvent = useCallback((event: WebSocketEvent, message: any) => {
-        let notification = '';
-        switch (event) {
-            case 'flat:created':
-                notification = 'Добавлена новая квартира';
-                break;
-            case 'flat:updated':
-                notification = 'Квартира обновлена';
-                break;
-            case 'flat:deleted':
-                notification = 'Квартира удалена';
-                break;
+    const handleUpdate = useCallback(({ action, data }: WebSocketUpdate) => {
+        if (showNotifications) {
+            let notification = '';
+            const entityType = type === 'FLAT' ? 'квартира' : 'дом';
+            
+            switch (action) {
+                case 'CREATE':
+                    notification = `Добавлен новый ${entityType}`;
+                    break;
+                case 'UPDATE':
+                    notification = `${entityType} обновлен(а)`;
+                    break;
+                case 'DELETE':
+                    notification = `${entityType} удален(а)`;
+                    break;
+            }
+            
+            enqueueSnackbar(notification, {
+                variant: 'info',
+                autoHideDuration: 3000
+            });
         }
         
-        enqueueSnackbar(notification, {
-            variant: 'info',
-            autoHideDuration: 3000
-        });
-        
-        onDataChange();
-    }, [enqueueSnackbar, onDataChange]);
+        if (onDataChange) {
+            onDataChange();
+        }
+    }, [enqueueSnackbar, onDataChange, showNotifications, type]);
 
     useEffect(() => {
-        const socket = io(WS_URL);
+        // Subscribe to WebSocket updates
+        const unsubscribe = websocketService.subscribe(type, handleUpdate);
 
-        socket.on('connect', () => {
-            console.log('WebSocket connected');
-        });
-
-        socket.on('disconnect', () => {
-            console.log('WebSocket disconnected');
-        });
-
-        // Подписываемся на события
-        socket.on('flat:created', () => handleEvent('flat:created', null));
-        socket.on('flat:updated', () => handleEvent('flat:updated', null));
-        socket.on('flat:deleted', () => handleEvent('flat:deleted', null));
-
+        // Cleanup subscription on unmount
         return () => {
-            socket.disconnect();
+            unsubscribe();
         };
-    }, [handleEvent]);
+    }, [type, handleUpdate]);
 };

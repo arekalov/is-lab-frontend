@@ -22,7 +22,7 @@ import {
     GridItem,
 } from '@chakra-ui/react';
 import { ChevronUpIcon, ChevronDownIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
-import type { Flat } from '../../types/models';
+import type { Flat, Furnish, View } from '../../types/models';
 import { furnishLabels, viewLabels } from '../../utils/enumLabels';
 
 interface Props {
@@ -30,8 +30,17 @@ interface Props {
     total: number;
     page: number;
     rowsPerPage: number;
+    sortField: string;
+    sortDirection: 'asc' | 'desc';
+    nameFilter: string;
+    furnishFilter: string;
+    viewFilter: string;
     onPageChange: (page: number) => void;
     onRowsPerPageChange: (rowsPerPage: number) => void;
+    onSortChange: (field: string) => void;
+    onNameFilterChange: (value: string) => void;
+    onFurnishFilterChange: (value: string) => void;
+    onViewFilterChange: (value: string) => void;
     onEdit: (flat: Flat) => void;
     onDelete: (flat: Flat) => void;
 }
@@ -120,7 +129,7 @@ const columns: Column[] = [
         id: 'furnish', 
         label: 'Мебель', 
         minWidth: 100,
-        format: (value) => furnishLabels[value] || value,
+        format: (value: Furnish) => furnishLabels[value] || value,
         sortable: true,
         filterable: true,
         filterType: 'select',
@@ -130,7 +139,7 @@ const columns: Column[] = [
         id: 'view', 
         label: 'Вид', 
         minWidth: 100,
-        format: (value) => viewLabels[value] || value,
+        format: (value: View) => viewLabels[value] || value,
         sortable: true,
         filterable: true,
         filterType: 'select',

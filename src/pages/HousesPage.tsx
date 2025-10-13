@@ -1,4 +1,4 @@
-import { type FC, useEffect, useState } from 'react';
+import { type FC, useEffect, useState, useCallback } from 'react';
 import { Box, Heading, Button, Spinner, Center } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { DeleteHouseDialog } from '../components/DeleteHouseDialog/DeleteHouseDi
 import { housesService } from '../services/housesService';
 import type { House } from '../types/models';
 import { useSnackbar } from 'notistack';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 export const HousesPage: FC = () => {
     const navigate = useNavigate();
@@ -19,7 +20,7 @@ export const HousesPage: FC = () => {
     const [houseToDelete, setHouseToDelete] = useState<House | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
-    const loadHouses = async () => {
+    const loadHouses = useCallback(async () => {
         try {
             setLoading(true);
             const data = await housesService.getHouses();
@@ -32,7 +33,10 @@ export const HousesPage: FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [enqueueSnackbar]);
+
+    // Subscribe to WebSocket updates for houses
+    useWebSocket('HOUSE', { onDataChange: loadHouses });
 
     useEffect(() => {
         loadHouses();

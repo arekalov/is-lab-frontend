@@ -7,6 +7,7 @@ import { DeleteFlatDialog } from '../components/DeleteFlatDialog/DeleteFlatDialo
 import { flatsService } from '../services/flatsService';
 import type { Flat } from '../types/models';
 import { useSnackbar } from 'notistack';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 export const HomePage: FC = () => {
     const navigate = useNavigate();
@@ -71,6 +72,9 @@ export const HomePage: FC = () => {
     useEffect(() => {
         loadFlats();
     }, [loadFlats]);
+
+    // Subscribe to WebSocket updates for flats
+    useWebSocket('FLAT', { onDataChange: loadFlats });
 
     // Сбрасываем страницу при изменении фильтров
     useEffect(() => {
