@@ -1,7 +1,7 @@
 
 
-// Для WebSocket используем относительный URL
-export const WS_URL = '/is-lab1/websocket/updates';
+// Для WebSocket используем localhost:281234 (проброшенный порт через SSH)
+export const WS_URL = 'ws://localhost:28123/websocket/updates';
 
 // Эндпоинты API
 export const API_ENDPOINTS = {

@@ -2,8 +2,9 @@ import axios from 'axios';
 import type { ErrorResponse } from '../types/models';
 
 // Создаем инстанс axios с базовой конфигурацией
+// Обращаемся к локальному порту 281234, который проброшен через SSH с сервера на локальный порт 8080
 export const api = axios.create({
-    baseURL: '/is-lab1/api',
+    baseURL: 'http://localhost:28123/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
