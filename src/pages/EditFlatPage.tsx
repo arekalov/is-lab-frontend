@@ -23,12 +23,12 @@ export const EditFlatPage: FC = () => {
 
             try {
                 setIsLoading(true);
-                const [flatData, housesData] = await Promise.all([
+                const [flatData, housesResponse] = await Promise.all([
                     flatsService.getFlatById(Number(id)),
-                    housesService.getHouses()
+                    housesService.getHouses(0, 1000) // Запрашиваем все дома
                 ]);
                 setFlat(flatData);
-                setHouses(housesData);
+                setHouses(housesResponse.items);
             } catch (error) {
                 enqueueSnackbar(
                     error instanceof Error ? error.message : 'Ошибка при загрузке данных',

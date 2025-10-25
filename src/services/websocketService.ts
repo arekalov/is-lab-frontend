@@ -1,97 +1,133 @@
-import { WS_URL } from "../utils/config";
-import type { WebSocketMessage, WebSocketListener } from "../types/websocket";
+import { WS_URL } from '../utils/config';
+import type { WebSocketType, WebSocketUpdate, WebSocketMessage } from '../types/websocket';
+
+type WebSocketCallback = (update: WebSocketUpdate) => void;
 
 class WebSocketService {
-  private ws: WebSocket | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private listeners: Map<string, WebSocketListener[]> = new Map();
-  private reconnectTimeoutId: number | null = null;
+    private ws: WebSocket | null = null;
+    private reconnectTimeout: number | null = null;
+    private subscribers: Map<WebSocketType, Set<WebSocketCallback>> = new Map();
+    private reconnectAttempts = 0;
+    private maxReconnectAttempts = 10;
+    private reconnectDelay = 5000;
 
-  constructor() {
-    this.connect();
-  }
-
-  private connect() {
-    try {
-      this.ws = new WebSocket(WS_URL);
-
-      this.ws.onopen = () => {
-        console.log("WebSocket connected");
-        this.reconnectAttempts = 0;
-      };
-
-      this.ws.onmessage = (event) => {
-        const message = JSON.parse(event.data) as WebSocketMessage;
-        this.handleMessage(message);
-      };
-
-      this.ws.onclose = () => {
-        console.log("WebSocket disconnected");
-        this.attemptReconnect();
-      };
-
-      this.ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
-    } catch (error) {
-      console.error("Failed to connect to WebSocket:", error);
-      this.attemptReconnect();
-    }
-  }
-
-  private attemptReconnect() {
-    if (this.reconnectTimeoutId !== null) {
-      window.clearTimeout(this.reconnectTimeoutId);
-    }
-
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      this.reconnectTimeoutId = window.setTimeout(() => {
-        console.log(
-          `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`
-        );
+    constructor() {
         this.connect();
-      }, 3000);
     }
-  }
 
-  private handleMessage(message: WebSocketMessage) {
-    const { type, action, data } = message;
-    const typeListeners = this.listeners.get(type) || [];
-    typeListeners.forEach((listener) => listener({ action, data }));
-  }
+    private connect() {
+        try {
+            this.ws = new WebSocket(`${WS_URL}/is-lab1/websocket`);
 
-  public subscribe(type: string, callback: WebSocketListener) {
-    const typeListeners = this.listeners.get(type) || [];
-    typeListeners.push(callback);
-    this.listeners.set(type, typeListeners);
+            this.ws.onopen = () => {
+                console.log('WebSocket connected');
+                this.reconnectAttempts = 0;
+            };
 
-    // Return unsubscribe function
-    return () => this.unsubscribe(type, callback);
-  }
+            this.ws.onmessage = (event) => {
+                try {
+                    const message: WebSocketMessage = JSON.parse(event.data);
+                    console.log('WebSocket message received:', message);
 
-  private unsubscribe(type: string, callback: WebSocketListener) {
-    const typeListeners = this.listeners.get(type) || [];
-    const index = typeListeners.indexOf(callback);
-    if (index !== -1) {
-      typeListeners.splice(index, 1);
-      this.listeners.set(type, typeListeners);
+                    // Парсим тип сообщения
+                    // Ожидаем формат: "flatCreated", "flatUpdated", "flatDeleted", "houseCreated", etc.
+                    const messageType = message.type.toLowerCase();
+                    
+                    let entityType: WebSocketType | null = null;
+                    let action: 'CREATE' | 'UPDATE' | 'DELETE' | null = null;
+
+                    if (messageType.startsWith('flat')) {
+                        entityType = 'FLAT';
+                    } else if (messageType.startsWith('house')) {
+                        entityType = 'HOUSE';
+                    }
+
+                    if (messageType.includes('created')) {
+                        action = 'CREATE';
+                    } else if (messageType.includes('updated')) {
+                        action = 'UPDATE';
+                    } else if (messageType.includes('deleted')) {
+                        action = 'DELETE';
+                    }
+
+                    if (entityType && action) {
+                        this.notifySubscribers(entityType, { type: entityType, action });
+                    } else {
+                        console.warn('Unknown WebSocket message type:', message.type);
+                    }
+                } catch (error) {
+                    console.error('Error processing WebSocket message:', error);
+                }
+            };
+
+            this.ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            this.ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                this.scheduleReconnect();
+            };
+        } catch (error) {
+            console.error('Failed to establish WebSocket connection:', error);
+            this.scheduleReconnect();
+        }
     }
-  }
 
-  public disconnect() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+    private scheduleReconnect() {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.error('Max reconnection attempts reached. Giving up.');
+            return;
+        }
+
+        if (this.reconnectTimeout) {
+            window.clearTimeout(this.reconnectTimeout);
+        }
+
+        this.reconnectAttempts++;
+        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+        
+        this.reconnectTimeout = window.setTimeout(() => {
+            this.connect();
+        }, this.reconnectDelay);
     }
-    if (this.reconnectTimeoutId !== null) {
-      window.clearTimeout(this.reconnectTimeoutId);
-      this.reconnectTimeoutId = null;
+
+    private notifySubscribers(type: WebSocketType, update: WebSocketUpdate) {
+        const callbacks = this.subscribers.get(type);
+        if (callbacks) {
+            callbacks.forEach(callback => callback(update));
+        }
     }
-    this.listeners.clear();
-  }
+
+    public subscribe(type: WebSocketType, callback: WebSocketCallback): () => void {
+        if (!this.subscribers.has(type)) {
+            this.subscribers.set(type, new Set());
+        }
+
+        this.subscribers.get(type)!.add(callback);
+
+        // Возвращаем функцию отписки
+        return () => {
+            const callbacks = this.subscribers.get(type);
+            if (callbacks) {
+                callbacks.delete(callback);
+            }
+        };
+    }
+
+    public disconnect() {
+        if (this.reconnectTimeout) {
+            window.clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+
+        this.subscribers.clear();
+    }
 }
 
-// Create a singleton instance
 export const websocketService = new WebSocketService();

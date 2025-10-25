@@ -1,4 +1,4 @@
-import { type FC, useState, useMemo } from 'react';
+import { type FC } from 'react';
 import {
     Table,
     Thead,
@@ -20,9 +20,24 @@ import {
 } from '@chakra-ui/react';
 import { ChevronUpIcon, ChevronDownIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import type { House } from '../../types/models';
+import { Pagination } from '../Pagination';
 
 interface Props {
     houses: House[];
+    total: number;
+    page: number;
+    rowsPerPage: number;
+    sortField: string;
+    sortDirection: 'asc' | 'desc';
+    nameFilter: string;
+    yearFilter: string;
+    numberOfFlatsOnFloorFilter: string;
+    onPageChange: (page: number) => void;
+    onRowsPerPageChange: (rowsPerPage: number) => void;
+    onSortChange: (field: string) => void;
+    onNameFilterChange: (value: string) => void;
+    onYearFilterChange: (value: string) => void;
+    onNumberOfFlatsOnFloorFilterChange: (value: string) => void;
     onEdit: (house: House) => void;
     onDelete: (house: House) => void;
 }
@@ -41,65 +56,26 @@ const columns: Column[] = [
     { id: 'numberOfFlatsOnFloor', label: 'Квартир на этаже', minWidth: 100 },
 ];
 
-interface SortConfig {
-    field: keyof House;
-    direction: 'asc' | 'desc';
-}
-
-interface Filters {
-    name: string;
-    year: string;
-    numberOfFlatsOnFloor: string;
-}
-
 export const HousesTable: FC<Props> = ({
     houses,
+    total,
+    page,
+    rowsPerPage,
+    sortField,
+    sortDirection,
+    nameFilter,
+    yearFilter,
+    numberOfFlatsOnFloorFilter,
+    onPageChange,
+    onRowsPerPageChange,
+    onSortChange,
+    onNameFilterChange,
+    onYearFilterChange,
+    onNumberOfFlatsOnFloorFilterChange,
     onEdit,
     onDelete
 }) => {
     const borderColor = useColorModeValue('gray.200', 'gray.700');
-    const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'id', direction: 'asc' });
-    const [filters, setFilters] = useState<Filters>({
-        name: '',
-        year: '',
-        numberOfFlatsOnFloor: '',
-    });
-
-    const handleSort = (field: keyof House) => {
-        setSortConfig(current => ({
-            field,
-            direction: current.field === field && current.direction === 'asc' ? 'desc' : 'asc'
-        }));
-    };
-
-    const filteredAndSortedHouses = useMemo(() => {
-        return [...houses]
-            .filter(house => {
-                const nameMatch = house.name.toLowerCase().includes(filters.name.toLowerCase());
-                const yearMatch = !filters.year || house.year.toString().includes(filters.year);
-                const flatsMatch = !filters.numberOfFlatsOnFloor || 
-                    house.numberOfFlatsOnFloor.toString().includes(filters.numberOfFlatsOnFloor);
-                return nameMatch && yearMatch && flatsMatch;
-            })
-            .sort((a, b) => {
-                const aValue = a[sortConfig.field];
-                const bValue = b[sortConfig.field];
-                
-                if (typeof aValue === 'string' && typeof bValue === 'string') {
-                    return sortConfig.direction === 'asc' 
-                        ? aValue.localeCompare(bValue)
-                        : bValue.localeCompare(aValue);
-                }
-                
-                // Приводим значения к числам для сравнения
-                const numA = Number(aValue);
-                const numB = Number(bValue);
-                
-                return sortConfig.direction === 'asc'
-                    ? (numA > numB ? 1 : numA < numB ? -1 : 0)
-                    : (numB > numA ? 1 : numB < numA ? -1 : 0);
-            });
-    }, [houses, sortConfig, filters]);
 
     if (!Array.isArray(houses)) {
         console.error('Houses is not an array:', houses);
@@ -117,18 +93,18 @@ export const HousesTable: FC<Props> = ({
             <HStack spacing={4}>
                 <Input
                     placeholder="Поиск по названию"
-                    value={filters.name}
-                    onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
+                    value={nameFilter}
+                    onChange={(e) => onNameFilterChange(e.target.value)}
                 />
                 <Input
                     placeholder="Поиск по году"
-                    value={filters.year}
-                    onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value }))}
+                    value={yearFilter}
+                    onChange={(e) => onYearFilterChange(e.target.value)}
                 />
                 <Input
                     placeholder="Поиск по кол-ву квартир"
-                    value={filters.numberOfFlatsOnFloor}
-                    onChange={(e) => setFilters(prev => ({ ...prev, numberOfFlatsOnFloor: e.target.value }))}
+                    value={numberOfFlatsOnFloorFilter}
+                    onChange={(e) => onNumberOfFlatsOnFloorFilterChange(e.target.value)}
                 />
             </HStack>
 
@@ -142,12 +118,12 @@ export const HousesTable: FC<Props> = ({
                                     key={column.id}
                                     minW={column.minWidth}
                                     cursor="pointer"
-                                    onClick={() => handleSort(column.id)}
+                                    onClick={() => onSortChange(column.id)}
                                 >
                                     <HStack spacing={2}>
                                         <Text>{column.label}</Text>
-                                        {sortConfig.field === column.id && (
-                                            sortConfig.direction === 'asc' ? <ChevronUpIcon /> : <ChevronDownIcon />
+                                        {sortField === column.id && (
+                                            sortDirection === 'asc' ? <ChevronUpIcon /> : <ChevronDownIcon />
                                         )}
                                     </HStack>
                                 </Th>
@@ -156,14 +132,14 @@ export const HousesTable: FC<Props> = ({
                         </Tr>
                     </Thead>
                     <Tbody>
-                        {filteredAndSortedHouses.length === 0 ? (
+                        {houses.length === 0 ? (
                             <Tr>
                                 <Td colSpan={columns.length + 1} textAlign="center">
                                     Нет данных
                                 </Td>
                             </Tr>
                         ) : (
-                            filteredAndSortedHouses.map((house) => (
+                            houses.map((house) => (
                                 <Tr key={house.id}>
                                     {columns.map((column) => (
                                         <Td key={column.id}>
@@ -194,6 +170,15 @@ export const HousesTable: FC<Props> = ({
                     </Tbody>
                 </Table>
             </Box>
+
+            {/* Пагинация */}
+            <Pagination
+                total={total}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                onPageChange={onPageChange}
+                onRowsPerPageChange={onRowsPerPageChange}
+            />
         </VStack>
     );
 };

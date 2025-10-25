@@ -15,8 +15,9 @@ export const CreateFlatPage: FC = () => {
     useEffect(() => {
         const loadHouses = async () => {
             try {
-                const houses = await housesService.getHouses();
-                setHouses(houses);
+                // Запрашиваем все дома (большой размер страницы)
+                const response = await housesService.getHouses(0, 1000);
+                setHouses(response.items);
             } catch (error) {
                 console.error('Failed to load houses:', error);
             }

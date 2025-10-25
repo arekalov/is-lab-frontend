@@ -1,15 +1,14 @@
-export type WebSocketAction = 'CREATE' | 'UPDATE' | 'DELETE';
 export type WebSocketType = 'FLAT' | 'HOUSE';
 
-export interface WebSocketMessage {
-  type: WebSocketType;
-  action: WebSocketAction;
-  data: any;
-}
+export type WebSocketAction = 'CREATE' | 'UPDATE' | 'DELETE';
 
 export interface WebSocketUpdate {
-  action: WebSocketAction;
-  data: any;
+    type: WebSocketType;
+    action: WebSocketAction;
+    id?: number;
 }
 
-export type WebSocketListener = (update: WebSocketUpdate) => void;
+export interface WebSocketMessage {
+    type: string;
+    data?: any;
+}

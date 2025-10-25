@@ -24,6 +24,7 @@ import {
 import { ChevronUpIcon, ChevronDownIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import type { Flat, Furnish, View } from '../../types/models';
 import { furnishLabels, viewLabels } from '../../utils/enumLabels';
+import { Pagination } from '../Pagination';
 
 interface Props {
     flats: Flat[];
@@ -367,43 +368,13 @@ export const FlatsTable: FC<Props> = ({
             </Box>
 
             {/* Пагинация */}
-            <HStack justify="flex-end" spacing={4}>
-                <Text>Строк на странице:</Text>
-                <Select
-                    value={rowsPerPage}
-                    onChange={(e) => {
-                        onRowsPerPageChange(Number(e.target.value));
-                        onPageChange(0);
-                    }}
-                    w="auto"
-                >
-                    {[5, 10, 25].map((size) => (
-                        <option key={size} value={size}>
-                            {size}
-                        </option>
-                    ))}
-                </Select>
-                <Text>
-                    {total > 0 ? 
-                        `${page * rowsPerPage + 1}-${Math.min((page + 1) * rowsPerPage, total)} из ${total}` :
-                        'Нет данных'
-                    }
-                </Text>
-                <ButtonGroup size="sm">
-                    <IconButton
-                        aria-label="Предыдущая страница"
-                        icon={<ChevronUpIcon />}
-                        onClick={() => onPageChange(page - 1)}
-                        isDisabled={page === 0}
-                    />
-                    <IconButton
-                        aria-label="Следующая страница"
-                        icon={<ChevronDownIcon />}
-                        onClick={() => onPageChange(page + 1)}
-                        isDisabled={(page + 1) * rowsPerPage >= total}
-                    />
-                </ButtonGroup>
-            </HStack>
+            <Pagination
+                total={total}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                onPageChange={onPageChange}
+                onRowsPerPageChange={onRowsPerPageChange}
+            />
         </VStack>
     );
 };
