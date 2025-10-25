@@ -12,7 +12,7 @@ export const useWebSocket = (type: WebSocketType, options: UseWebSocketOptions =
     const { onDataChange, showNotifications = true } = options;
     const { enqueueSnackbar } = useSnackbar();
 
-    const handleUpdate = useCallback(({ action, data }: WebSocketUpdate) => {
+    const handleUpdate = useCallback(({ action }: WebSocketUpdate) => {
         if (showNotifications) {
             let notification = '';
             const entityType = type === 'FLAT' ? 'квартира' : 'дом';

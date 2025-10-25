@@ -1,8 +1,7 @@
-// Базовый URL для API
-export const API_URL = 'http://localhost:28600/is-lab1/api';
 
-// URL для WebSocket подключения
-export const WS_URL = 'ws://localhost:28600/is-lab1/websocket/updates';
+
+// Для WebSocket используем относительный URL
+export const WS_URL = '/is-lab1/websocket/updates';
 
 // Эндпоинты API
 export const API_ENDPOINTS = {

@@ -91,9 +91,13 @@ export const HousesTable: FC<Props> = ({
                         : bValue.localeCompare(aValue);
                 }
                 
+                // Приводим значения к числам для сравнения
+                const numA = Number(aValue);
+                const numB = Number(bValue);
+                
                 return sortConfig.direction === 'asc'
-                    ? (aValue > bValue ? 1 : -1)
-                    : (bValue > aValue ? 1 : -1);
+                    ? (numA > numB ? 1 : numA < numB ? -1 : 0)
+                    : (numB > numA ? 1 : numB < numA ? -1 : 0);
             });
     }, [houses, sortConfig, filters]);
 

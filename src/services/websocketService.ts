@@ -1,5 +1,5 @@
-import { WS_URL } from '../utils/config';
-import type { WebSocketMessage, WebSocketListener } from '../types/websocket';
+import { WS_URL } from "../utils/config";
+import type { WebSocketMessage, WebSocketListener } from "../types/websocket";
 
 class WebSocketService {
   private ws: WebSocket | null = null;
@@ -15,9 +15,9 @@ class WebSocketService {
   private connect() {
     try {
       this.ws = new WebSocket(WS_URL);
-      
+
       this.ws.onopen = () => {
-        console.log('WebSocket connected');
+        console.log("WebSocket connected");
         this.reconnectAttempts = 0;
       };
 
@@ -27,15 +27,15 @@ class WebSocketService {
       };
 
       this.ws.onclose = () => {
-        console.log('WebSocket disconnected');
+        console.log("WebSocket disconnected");
         this.attemptReconnect();
       };
 
       this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error("WebSocket error:", error);
       };
     } catch (error) {
-      console.error('Failed to connect to WebSocket:', error);
+      console.error("Failed to connect to WebSocket:", error);
       this.attemptReconnect();
     }
   }
@@ -48,7 +48,9 @@ class WebSocketService {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       this.reconnectTimeoutId = window.setTimeout(() => {
-        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        console.log(
+          `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+        );
         this.connect();
       }, 3000);
     }
@@ -57,7 +59,7 @@ class WebSocketService {
   private handleMessage(message: WebSocketMessage) {
     const { type, action, data } = message;
     const typeListeners = this.listeners.get(type) || [];
-    typeListeners.forEach(listener => listener({ action, data }));
+    typeListeners.forEach((listener) => listener({ action, data }));
   }
 
   public subscribe(type: string, callback: WebSocketListener) {

@@ -11,20 +11,24 @@ export type House = {
     numberOfFlatsOnFloor: number;
 };
 
-export enum Furnish {
-    DESIGNER = 'DESIGNER',
-    FINE = 'FINE',
-    BAD = 'BAD',
-    LITTLE = 'LITTLE'
-}
+export const Furnish = {
+    DESIGNER: 'DESIGNER',
+    FINE: 'FINE',
+    BAD: 'BAD',
+    LITTLE: 'LITTLE'
+} as const;
 
-export enum View {
-    STREET = 'STREET',
-    YARD = 'YARD',
-    BAD = 'BAD',
-    GOOD = 'GOOD',
-    TERRIBLE = 'TERRIBLE'
-}
+export type Furnish = typeof Furnish[keyof typeof Furnish];
+
+export const View = {
+    STREET: 'STREET',
+    YARD: 'YARD',
+    BAD: 'BAD',
+    GOOD: 'GOOD',
+    TERRIBLE: 'TERRIBLE'
+} as const;
+
+export type View = typeof View[keyof typeof View];
 
 export type Flat = {
     id?: number;

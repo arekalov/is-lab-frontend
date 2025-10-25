@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import { type FC, useRef } from 'react';
 import {
     AlertDialog,
     AlertDialogBody,
@@ -26,11 +26,14 @@ export const DeleteHouseDialog: FC<Props> = ({
     onClose,
     onConfirm,
 }) => {
+    // Создаем ref для наименее деструктивной кнопки (кнопка отмены)
+    const cancelRef = useRef<HTMLButtonElement>(null);
+
     return (
         <AlertDialog
             isOpen={isOpen}
             onClose={onClose}
-            leastDestructiveRef={undefined}
+            leastDestructiveRef={cancelRef}
             isCentered
         >
             <AlertDialogOverlay>
@@ -55,7 +58,7 @@ export const DeleteHouseDialog: FC<Props> = ({
                     </AlertDialogBody>
 
                     <AlertDialogFooter>
-                        <Button onClick={onClose} mr={3} isDisabled={isLoading}>
+                        <Button ref={cancelRef} onClick={onClose} mr={3} isDisabled={isLoading}>
                             Отмена
                         </Button>
                         <Button

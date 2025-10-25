@@ -1,16 +1,15 @@
 import axios from 'axios';
-import { API_URL } from '../utils/config';
 import type { ErrorResponse } from '../types/models';
 
 // Создаем инстанс axios с базовой конфигурацией
 export const api = axios.create({
-    baseURL: API_URL,
+    baseURL: '/is-lab1/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
     // Таймаут для запросов
-    timeout: 10000,
+    timeout: 10000
 });
 
 // Интерцептор для запросов
