@@ -74,7 +74,57 @@ export const HomePage: FC = () => {
     }, [loadFlats]);
 
     // Subscribe to WebSocket updates for flats
-    useWebSocket('FLAT', { onDataChange: loadFlats });
+    useWebSocket('FLAT', { 
+        onCreate: (data) => {
+            // Добавляем новую квартиру в начало списка
+            setFlats(prev => [data, ...prev]);
+            setTotal(prev => prev + 1);
+        },
+        onUpdate: (data) => {
+            // Обновляем квартиру в списке
+            setFlats(prev => prev.map(flat => flat.id === data.id ? data : flat));
+        },
+        onDelete: (id) => {
+            // Удаляем квартиру из списка
+            setFlats(prev => prev.filter(flat => flat.id !== id));
+            setTotal(prev => prev - 1);
+            
+            // Если удаляемая квартира сейчас открыта для редактирования
+            if (flatToDelete?.id === id) {
+                handleDeleteCancel();
+            }
+        }
+    });
+
+    // Subscribe to WebSocket updates for houses (для каскадного удаления)
+    useWebSocket('HOUSE', { 
+        onDelete: (houseId) => {
+            // При удалении дома удаляем все его квартиры
+            setFlats(prev => {
+                const flatsToRemove = prev.filter(flat => flat.house?.id === houseId);
+                if (flatsToRemove.length > 0) {
+                    enqueueSnackbar(
+                        `Удалено ${flatsToRemove.length} квартир из удаленного дома`,
+                        { variant: 'warning' }
+                    );
+                }
+                return prev.filter(flat => flat.house?.id !== houseId);
+            });
+            setTotal(prev => {
+                const removed = flats.filter(flat => flat.house?.id === houseId).length;
+                return prev - removed;
+            });
+        },
+        onUpdate: (data) => {
+            // При обновлении дома обновляем информацию о доме во всех квартирах
+            setFlats(prev => prev.map(flat => 
+                flat.house?.id === data.id 
+                    ? { ...flat, house: data } 
+                    : flat
+            ));
+        },
+        showNotifications: false // Не показываем уведомления о домах на странице квартир
+    });
 
     // Сбрасываем страницу при изменении фильтров
     useEffect(() => {

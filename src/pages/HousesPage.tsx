@@ -72,7 +72,33 @@ export const HousesPage: FC = () => {
     }, [loadHouses]);
 
     // Subscribe to WebSocket updates for houses
-    useWebSocket('HOUSE', { onDataChange: loadHouses });
+    useWebSocket('HOUSE', { 
+        onCreate: (data) => {
+            // Добавляем новый дом в начало списка
+            setHouses(prev => [data, ...prev]);
+            setTotal(prev => prev + 1);
+        },
+        onUpdate: (data) => {
+            // Обновляем дом в списке
+            setHouses(prev => prev.map(house => house.id === data.id ? data : house));
+        },
+        onDelete: (id) => {
+            // Удаляем дом из списка
+            setHouses(prev => prev.filter(house => house.id !== id));
+            setTotal(prev => prev - 1);
+            
+            // Если удаляемый дом сейчас открыт для редактирования
+            if (houseToDelete?.id === id) {
+                handleDeleteCancel();
+            }
+            
+            // Показываем предупреждение о каскадном удалении квартир
+            enqueueSnackbar(
+                'Дом удален. Все квартиры этого дома также удалены.',
+                { variant: 'warning', autoHideDuration: 5000 }
+            );
+        }
+    });
 
     // Сбрасываем страницу при изменении фильтров
     useEffect(() => {

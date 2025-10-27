@@ -29,6 +29,7 @@ class WebSocketService {
   private currentStatus: WebSocketStatus = WebSocketStatus.DISCONNECTED;
 
   constructor() {
+    console.log("🚀 WebSocketService initialized");
     this.connect();
   }
 
@@ -51,11 +52,13 @@ class WebSocketService {
 
   private connect() {
     try {
+      const wsUrl = `${WS_URL}/is-lab1/websocket/updates`;
+      console.log("🔌 Attempting to connect to WebSocket:", wsUrl);
       this.setStatus(WebSocketStatus.CONNECTING);
-      this.ws = new WebSocket(`${WS_URL}/is-lab1/websocket/updates`);
+      this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log("WebSocket connected");
+        console.log("✅ WebSocket connected successfully");
         this.reconnectAttempts = 0;
         this.setStatus(WebSocketStatus.CONNECTED);
       };
@@ -63,26 +66,23 @@ class WebSocketService {
       this.ws.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
-          console.log("WebSocket message received:", message);
+          console.log("📨 WebSocket message received:", message);
 
           const { type, action, data } = message;
 
-          if (!type || !action || !data) {
+          // Валидация структуры сообщения
+          if (!type || !action || data === undefined) {
             console.warn("Invalid WebSocket message format:", message);
             return;
           }
 
-          if (!data.id) {
-            console.warn("WebSocket message data missing ID:", message);
-            return;
-          }
-
-          // Валидация типа и действия
+          // Валидация типа
           if (type !== "FLAT" && type !== "HOUSE") {
             console.warn("Unknown WebSocket message type:", type);
             return;
           }
 
+          // Валидация действия
           if (
             action !== "CREATE" &&
             action !== "UPDATE" &&
@@ -92,11 +92,28 @@ class WebSocketService {
             return;
           }
 
+          // Для DELETE data - это просто ID (number)
+          // Для CREATE и UPDATE data - это полный объект
+          if (action === "DELETE") {
+            if (typeof data !== "number") {
+              console.warn("DELETE action expects ID as number:", message);
+              return;
+            }
+          } else {
+            // CREATE или UPDATE
+            if (typeof data !== "object" || !data.id) {
+              console.warn(
+                "CREATE/UPDATE action expects object with id:",
+                message
+              );
+              return;
+            }
+          }
+
           // Отправляем обновление подписчикам
           this.notifySubscribers(type as WebSocketType, {
             type: type as WebSocketType,
             action: action as WebSocketAction,
-            id: data.id,
             data,
           });
         } catch (error) {
@@ -105,24 +122,30 @@ class WebSocketService {
       };
 
       this.ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error("❌ WebSocket error:", error);
         this.setStatus(WebSocketStatus.ERROR);
       };
 
-      this.ws.onclose = () => {
-        console.log("WebSocket disconnected");
+      this.ws.onclose = (event) => {
+        console.log("🔌 WebSocket disconnected", {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+        });
         this.setStatus(WebSocketStatus.DISCONNECTED);
         this.scheduleReconnect();
       };
     } catch (error) {
-      console.error("Failed to establish WebSocket connection:", error);
+      console.error("❌ Failed to establish WebSocket connection:", error);
+      this.setStatus(WebSocketStatus.ERROR);
       this.scheduleReconnect();
     }
   }
 
   private scheduleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error("Max reconnection attempts reached. Giving up.");
+      console.error("❌ Max reconnection attempts reached. Giving up.");
+      this.setStatus(WebSocketStatus.ERROR);
       return;
     }
 
@@ -132,7 +155,7 @@ class WebSocketService {
 
     this.reconnectAttempts++;
     console.log(
-      `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+      `🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
     );
 
     this.reconnectTimeout = window.setTimeout(() => {
@@ -142,8 +165,19 @@ class WebSocketService {
 
   private notifySubscribers(type: WebSocketType, update: WebSocketUpdate) {
     const callbacks = this.subscribers.get(type);
-    if (callbacks) {
-      callbacks.forEach((callback) => callback(update));
+    if (callbacks && callbacks.size > 0) {
+      console.log(
+        `📢 Notifying ${callbacks.size} subscriber(s) for type: ${type}`
+      );
+      callbacks.forEach((callback) => {
+        try {
+          callback(update);
+        } catch (error) {
+          console.error("Error in subscriber callback:", error);
+        }
+      });
+    } else {
+      console.warn(`⚠️ No subscribers for type: ${type}`);
     }
   }
 
@@ -156,12 +190,20 @@ class WebSocketService {
     }
 
     this.subscribers.get(type)!.add(callback);
+    console.log(
+      `✅ Subscribed to ${type}. Total subscribers: ${
+        this.subscribers.get(type)!.size
+      }`
+    );
 
     // Возвращаем функцию отписки
     return () => {
       const callbacks = this.subscribers.get(type);
       if (callbacks) {
         callbacks.delete(callback);
+        console.log(
+          `❌ Unsubscribed from ${type}. Remaining subscribers: ${callbacks.size}`
+        );
       }
     };
   }

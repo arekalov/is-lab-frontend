@@ -20,6 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { HamburgerIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { WebSocketStatus } from '../WebSocketStatus';
 
 const SIDEBAR_WIDTH = '240px';
 
@@ -91,12 +92,14 @@ export const Layout: FC<Props> = ({ children }) => {
                     variant="ghost"
                 />
                 <Heading size="md" ml={4}>Управление недвижимостью</Heading>
+                <Box ml="auto" mr={2}>
+                    <WebSocketStatus />
+                </Box>
                 <IconButton
                     aria-label="Toggle color mode"
                     icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
                     onClick={toggleColorMode}
                     variant="ghost"
-                    ml="auto"
                 />
             </Flex>
 
@@ -126,13 +129,18 @@ export const Layout: FC<Props> = ({ children }) => {
                 <Flex direction="column" h="full" p={4}>
                     <Heading size="md" mb={8}>Управление недвижимостью</Heading>
                     <NavContent />
-                    <IconButton
-                        aria-label="Toggle color mode"
-                        icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-                        onClick={toggleColorMode}
-                        variant="ghost"
-                        mt="auto"
-                    />
+                    <Box mt="auto">
+                        <Box mb={4}>
+                            <WebSocketStatus />
+                        </Box>
+                        <IconButton
+                            aria-label="Toggle color mode"
+                            icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+                            onClick={toggleColorMode}
+                            variant="ghost"
+                            w="full"
+                        />
+                    </Box>
                 </Flex>
             </Box>
 

@@ -1,11 +1,12 @@
 import { type FC, useEffect, useState } from 'react';
-import { Box, Heading, Spinner, Center } from '@chakra-ui/react';
+import { Box, Heading, Spinner, Center, Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FlatForm } from '../components/FlatForm/FlatForm';
 import { flatsService } from '../services/flatsService';
 import { housesService } from '../services/housesService';
 import type { Flat, House } from '../types/models';
 import { useSnackbar } from 'notistack';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 export const EditFlatPage: FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ export const EditFlatPage: FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [flat, setFlat] = useState<Flat | null>(null);
     const [houses, setHouses] = useState<House[]>([]);
+    const [wasUpdatedExternally, setWasUpdatedExternally] = useState(false);
 
     // Загружаем данные квартиры и список домов
     useEffect(() => {
@@ -25,7 +27,7 @@ export const EditFlatPage: FC = () => {
                 setIsLoading(true);
                 const [flatData, housesResponse] = await Promise.all([
                     flatsService.getFlatById(Number(id)),
-                    housesService.getHouses(0, 1000) // Запрашиваем все дома
+                    housesService.getHouses(0, 100) // Запрашиваем дома (максимум 100)
                 ]);
                 setFlat(flatData);
                 setHouses(housesResponse.items);
@@ -42,6 +44,56 @@ export const EditFlatPage: FC = () => {
 
         loadData();
     }, [id, navigate, enqueueSnackbar]);
+
+    // Subscribe to WebSocket updates for this flat
+    useWebSocket('FLAT', {
+        onUpdate: (data) => {
+            if (data.id === Number(id)) {
+                setFlat(data);
+                setWasUpdatedExternally(true);
+                enqueueSnackbar(
+                    'Квартира была обновлена другим пользователем',
+                    { variant: 'warning' }
+                );
+            }
+        },
+        onDelete: (deletedId) => {
+            if (deletedId === Number(id)) {
+                enqueueSnackbar(
+                    'Квартира была удалена другим пользователем',
+                    { variant: 'error' }
+                );
+                navigate('/');
+            }
+        },
+        showNotifications: false
+    });
+
+    // Subscribe to house updates (if house was deleted)
+    useWebSocket('HOUSE', {
+        onDelete: (houseId) => {
+            if (flat?.house?.id === houseId) {
+                enqueueSnackbar(
+                    'Дом этой квартиры был удален',
+                    { variant: 'error' }
+                );
+                navigate('/');
+            }
+        },
+        onUpdate: (data) => {
+            // Обновляем информацию о доме, если он принадлежит текущей квартире
+            if (flat?.house?.id === data.id) {
+                setFlat(prev => prev ? { ...prev, house: data } : null);
+            }
+            // Обновляем дом в списке доступных домов
+            setHouses(prev => prev.map(house => house.id === data.id ? data : house));
+        },
+        onCreate: (data) => {
+            // Добавляем новый дом в список доступных
+            setHouses(prev => [...prev, data]);
+        },
+        showNotifications: false
+    });
 
     const handleSubmit = async (data: any) => {
         if (!id) return;
@@ -90,6 +142,18 @@ export const EditFlatPage: FC = () => {
     return (
         <Box>
             <Heading mb={6}>Редактирование квартиры</Heading>
+            {wasUpdatedExternally && (
+                <Alert status="warning" mb={4}>
+                    <AlertIcon />
+                    <Box>
+                        <AlertTitle>Данные были изменены</AlertTitle>
+                        <AlertDescription>
+                            Эта квартира была обновлена другим пользователем. 
+                            Форма содержит актуальные данные.
+                        </AlertDescription>
+                    </Box>
+                </Alert>
+            )}
             <FlatForm
                 onSubmit={handleSubmit}
                 availableHouses={houses}

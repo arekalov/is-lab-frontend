@@ -10,6 +10,8 @@ import { HousesPage } from './pages/HousesPage';
 import { CreateHousePage } from './pages/CreateHousePage';
 import { EditHousePage } from './pages/EditHousePage';
 import { theme } from './theme';
+// Инициализируем WebSocket сервис при загрузке приложения
+import './services/websocketService';
 
 function App() {
   return (
