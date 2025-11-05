@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
 import { SnackbarProvider } from 'notistack';
 import { Layout } from './components/Layout/Layout';
@@ -17,7 +17,7 @@ function App() {
   return (
     <ChakraProvider theme={theme}>
       <SnackbarProvider maxSnack={3}>
-        <BrowserRouter>
+        <HashRouter>
           <Layout>
             <Routes>
               <Route path="/" element={<HomePage />} />
@@ -29,7 +29,7 @@ function App() {
               <Route path="/special" element={<SpecialOperationsPage />} />
             </Routes>
           </Layout>
-        </BrowserRouter>
+        </HashRouter>
       </SnackbarProvider>
     </ChakraProvider>
   );
