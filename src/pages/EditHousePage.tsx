@@ -1,5 +1,5 @@
 import { type FC, useEffect, useState } from 'react';
-import { Box, Heading, Spinner, Center, Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react';
+import { Box, Heading, Spinner, Center } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { HouseForm } from '../components/HouseForm/HouseForm';
 import { housesService } from '../services/housesService';
@@ -14,7 +14,6 @@ export const EditHousePage: FC = () => {
     
     const [isLoading, setIsLoading] = useState(false);
     const [house, setHouse] = useState<House | null>(null);
-    const [wasUpdatedExternally, setWasUpdatedExternally] = useState(false);
 
     useEffect(() => {
         const loadHouse = async () => {
@@ -43,11 +42,6 @@ export const EditHousePage: FC = () => {
         onUpdate: (data) => {
             if (data.id === Number(id)) {
                 setHouse(data);
-                setWasUpdatedExternally(true);
-                enqueueSnackbar(
-                    'Дом был обновлен другим пользователем',
-                    { variant: 'warning' }
-                );
             }
         },
         onDelete: (deletedId) => {
@@ -91,18 +85,6 @@ export const EditHousePage: FC = () => {
     return (
         <Box>
             <Heading mb={6}>Редактирование дома</Heading>
-            {wasUpdatedExternally && (
-                <Alert status="warning" mb={4}>
-                    <AlertIcon />
-                    <Box>
-                        <AlertTitle>Данные были изменены</AlertTitle>
-                        <AlertDescription>
-                            Этот дом был обновлен другим пользователем. 
-                            Форма содержит актуальные данные.
-                        </AlertDescription>
-                    </Box>
-                </Alert>
-            )}
             <HouseForm
                 onSubmit={handleSubmit}
                 initialData={house}

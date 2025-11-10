@@ -50,12 +50,12 @@ export const HouseForm: FC<Props> = ({
     const handleFormSubmit = async (data: HouseFormData) => {
         try {
             await onSubmit(data);
-            toast({
-                title: 'Успешно',
-                description: initialData ? 'Дом обновлен' : 'Дом создан',
-                status: 'success',
-            });
             if (!initialData) {
+                toast({
+                    title: 'Успешно',
+                    description: 'Дом создан',
+                    status: 'success',
+                });
                 reset();
             }
         } catch (error) {

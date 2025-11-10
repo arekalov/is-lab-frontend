@@ -1,5 +1,5 @@
 import { type FC, useEffect, useState } from 'react';
-import { Box, Heading, Spinner, Center, Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react';
+import { Box, Heading, Spinner, Center } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FlatForm } from '../components/FlatForm/FlatForm';
 import { flatsService } from '../services/flatsService';
@@ -16,7 +16,6 @@ export const EditFlatPage: FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [flat, setFlat] = useState<Flat | null>(null);
     const [houses, setHouses] = useState<House[]>([]);
-    const [wasUpdatedExternally, setWasUpdatedExternally] = useState(false);
 
     // Загружаем данные квартиры и список домов
     useEffect(() => {
@@ -50,11 +49,6 @@ export const EditFlatPage: FC = () => {
         onUpdate: (data) => {
             if (data.id === Number(id)) {
                 setFlat(data);
-                setWasUpdatedExternally(true);
-                enqueueSnackbar(
-                    'Квартира была обновлена другим пользователем',
-                    { variant: 'warning' }
-                );
             }
         },
         onDelete: (deletedId) => {
@@ -142,18 +136,6 @@ export const EditFlatPage: FC = () => {
     return (
         <Box>
             <Heading mb={6}>Редактирование квартиры</Heading>
-            {wasUpdatedExternally && (
-                <Alert status="warning" mb={4}>
-                    <AlertIcon />
-                    <Box>
-                        <AlertTitle>Данные были изменены</AlertTitle>
-                        <AlertDescription>
-                            Эта квартира была обновлена другим пользователем. 
-                            Форма содержит актуальные данные.
-                        </AlertDescription>
-                    </Box>
-                </Alert>
-            )}
             <FlatForm
                 onSubmit={handleSubmit}
                 availableHouses={houses}
