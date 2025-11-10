@@ -16,7 +16,7 @@ import type { House } from '../../types/models';
 
 interface HouseFormData {
     name: string;
-    year: number;
+    year?: number | string;
     numberOfFlatsOnFloor: number;
 }
 
@@ -40,9 +40,10 @@ export const HouseForm: FC<Props> = ({
         reset,
         formState: { errors },
     } = useForm<HouseFormData>({
+        mode: 'onChange',
         defaultValues: {
             name: initialData?.name || '',
-            year: initialData?.year || new Date().getFullYear(),
+            year: initialData?.year ? String(initialData.year) : '',
             numberOfFlatsOnFloor: initialData?.numberOfFlatsOnFloor || 1,
         },
     });
@@ -51,6 +52,7 @@ export const HouseForm: FC<Props> = ({
         try {
             await onSubmit(data);
             if (!initialData) {
+                // Показываем уведомление только при создании
                 toast({
                     title: 'Успешно',
                     description: 'Дом создан',
@@ -90,13 +92,24 @@ export const HouseForm: FC<Props> = ({
                         control={control}
                         rules={{ 
                             required: 'Обязательное поле',
-                            min: { value: 1800, message: 'Минимальный год: 1800' },
-                            max: { value: new Date().getFullYear(), message: 'Не может быть больше текущего года' }
+                            validate: {
+                                isNumber: (v) => !isNaN(Number(v)) || 'Должно быть числом',
+                                min: (v) => {
+                                    const num = Number(v);
+                                    return num >= 1000 || 'Минимальный год: 1000';
+                                },
+                                max: (v) => {
+                                    const num = Number(v);
+                                    return num <= new Date().getFullYear() || `Год не может быть больше ${new Date().getFullYear()}`;
+                                }
+                            }
                         }}
                         render={({ field }) => (
-                            <NumberInput {...field} min={1800} max={new Date().getFullYear()}>
-                                <NumberInputField />
-                            </NumberInput>
+                            <Input 
+                                {...field}
+                                type="number"
+                                placeholder="Введите год постройки"
+                            />
                         )}
                     />
                     <FormErrorMessage>{errors.year?.message}</FormErrorMessage>

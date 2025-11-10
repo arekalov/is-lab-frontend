@@ -30,22 +30,29 @@ export const useWebSocket = (
 
       if (showNotifications) {
         let notification = "";
-        const entityType = type === "FLAT" ? "квартира" : "дом";
+        let variant: "info" | "success" | "warning" = "info";
 
         switch (action) {
           case "CREATE":
-            notification = `Добавлен новый ${entityType}`;
+            notification =
+              type === "FLAT"
+                ? "Добавлена новая квартира"
+                : "Добавлен новый дом";
+            variant = "info";
             break;
           case "UPDATE":
-            notification = `${entityType} обновлен(а)`;
+            notification =
+              type === "FLAT" ? "Квартира обновлена" : "Дом обновлен";
+            variant = "info";
             break;
           case "DELETE":
-            notification = `${entityType} удален(а)`;
+            notification = type === "FLAT" ? "Квартира удалена" : "Дом удален";
+            variant = "info";
             break;
         }
 
         enqueueSnackbar(notification, {
-          variant: "info",
+          variant,
           autoHideDuration: 3000,
         });
       }

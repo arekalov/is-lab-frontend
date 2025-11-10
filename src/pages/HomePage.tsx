@@ -93,23 +93,15 @@ export const HomePage: FC = () => {
             if (flatToDelete?.id === id) {
                 handleDeleteCancel();
             }
-        }
+        },
+        showNotifications: true // Показываем WebSocket уведомления
     });
 
     // Subscribe to WebSocket updates for houses (для каскадного удаления)
     useWebSocket('HOUSE', { 
         onDelete: (houseId) => {
             // При удалении дома удаляем все его квартиры
-            setFlats(prev => {
-                const flatsToRemove = prev.filter(flat => flat.house?.id === houseId);
-                if (flatsToRemove.length > 0) {
-                    enqueueSnackbar(
-                        `Удалено ${flatsToRemove.length} квартир из удаленного дома`,
-                        { variant: 'warning' }
-                    );
-                }
-                return prev.filter(flat => flat.house?.id !== houseId);
-            });
+            setFlats(prev => prev.filter(flat => flat.house?.id !== houseId));
             setTotal(prev => {
                 const removed = flats.filter(flat => flat.house?.id === houseId).length;
                 return prev - removed;
@@ -148,7 +140,7 @@ export const HomePage: FC = () => {
         try {
             setDeleteLoading(true);
             await flatsService.deleteFlat(flatToDelete.id);
-            enqueueSnackbar('Квартира успешно удалена', { variant: 'success' });
+            // Уведомление придет через WebSocket
             setDeleteDialogOpen(false);
             setFlatToDelete(null);
             loadFlats();

@@ -91,13 +91,8 @@ export const HousesPage: FC = () => {
             if (houseToDelete?.id === id) {
                 handleDeleteCancel();
             }
-            
-            // Показываем предупреждение о каскадном удалении квартир
-            enqueueSnackbar(
-                'Дом удален. Все квартиры этого дома также удалены.',
-                { variant: 'warning', autoHideDuration: 5000 }
-            );
-        }
+        },
+        showNotifications: true // Оставляем только общее WebSocket уведомление
     });
 
     // Сбрасываем страницу при изменении фильтров
@@ -122,7 +117,7 @@ export const HousesPage: FC = () => {
         try {
             setDeleteLoading(true);
             await housesService.deleteHouse(houseToDelete.id);
-            enqueueSnackbar('Дом успешно удален', { variant: 'success' });
+            // Уведомление придет через WebSocket
             setDeleteDialogOpen(false);
             setHouseToDelete(null);
             loadHouses();

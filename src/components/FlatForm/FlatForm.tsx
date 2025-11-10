@@ -85,12 +85,13 @@ export const FlatForm: FC<Props> = ({
     const handleFormSubmit = async (data: FlatFormData) => {
         try {
             await onSubmit(data);
-            toast({
-                title: 'Успешно',
-                description: initialData ? 'Квартира обновлена' : 'Квартира создана',
-                status: 'success',
-            });
             if (!initialData) {
+                // Показываем уведомление только при создании
+                toast({
+                    title: 'Успешно',
+                    description: 'Квартира создана',
+                    status: 'success',
+                });
                 reset();
             }
         } catch (error) {
