@@ -35,6 +35,7 @@ interface FlatFormData {
     livingSpace: number;
     furnish: Furnish;
     view: View;
+    floor: number;
     houseId?: number;
 }
 
@@ -78,6 +79,7 @@ export const FlatForm: FC<Props> = ({
             livingSpace: initialData?.livingSpace || 0,
             furnish: initialData?.furnish || Furnish.FINE,
             view: initialData?.view || View.YARD,
+            floor: initialData?.floor || 1,
             houseId: initialData?.house?.id,
         },
     });
@@ -227,6 +229,26 @@ export const FlatForm: FC<Props> = ({
                             <FormErrorMessage>{errors.timeToMetroOnFoot?.message}</FormErrorMessage>
                         </FormControl>
 
+                        <FormControl isInvalid={!!errors.floor}>
+                            <FormLabel>Этаж</FormLabel>
+                            <Controller
+                                name="floor"
+                                control={control}
+                                rules={{ 
+                                    required: 'Обязательное поле',
+                                    min: { value: 1, message: 'Этаж должен быть больше 0' }
+                                }}
+                                render={({ field }) => (
+                                    <NumberInput {...field} min={1}>
+                                        <NumberInputField />
+                                    </NumberInput>
+                                )}
+                            />
+                            <FormErrorMessage>{errors.floor?.message}</FormErrorMessage>
+                        </FormControl>
+                    </SimpleGrid>
+
+                    <SimpleGrid columns={2} spacing={4}>
                         <FormControl isInvalid={!!errors.numberOfRooms}>
                             <FormLabel>Количество комнат</FormLabel>
                             <Controller
@@ -245,25 +267,25 @@ export const FlatForm: FC<Props> = ({
                             />
                             <FormErrorMessage>{errors.numberOfRooms?.message}</FormErrorMessage>
                         </FormControl>
-                    </SimpleGrid>
 
-                    <FormControl isInvalid={!!errors.livingSpace}>
-                        <FormLabel>Жилая площадь</FormLabel>
-                        <Controller
-                            name="livingSpace"
-                            control={control}
-                            rules={{ 
-                                required: 'Обязательное поле',
-                                min: { value: 1, message: 'Должно быть больше 0' }
-                            }}
-                            render={({ field }) => (
-                                <NumberInput {...field} min={1}>
-                                    <NumberInputField />
-                                </NumberInput>
-                            )}
-                        />
-                        <FormErrorMessage>{errors.livingSpace?.message}</FormErrorMessage>
-                    </FormControl>
+                        <FormControl isInvalid={!!errors.livingSpace}>
+                            <FormLabel>Жилая площадь</FormLabel>
+                            <Controller
+                                name="livingSpace"
+                                control={control}
+                                rules={{ 
+                                    required: 'Обязательное поле',
+                                    min: { value: 1, message: 'Должно быть больше 0' }
+                                }}
+                                render={({ field }) => (
+                                    <NumberInput {...field} min={1}>
+                                        <NumberInputField />
+                                    </NumberInput>
+                                )}
+                            />
+                            <FormErrorMessage>{errors.livingSpace?.message}</FormErrorMessage>
+                        </FormControl>
+                    </SimpleGrid>
 
                     <SimpleGrid columns={2} spacing={4}>
                         <FormControl isInvalid={!!errors.furnish}>

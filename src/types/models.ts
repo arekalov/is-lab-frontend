@@ -43,6 +43,7 @@ export type Flat = {
     livingSpace: number;
     furnish: Furnish;
     view: View;
+    floor: number;
     house?: House;
 };
 
@@ -55,4 +56,28 @@ export type PagedResponse<T> = {
 
 export type ErrorResponse = {
     message: string;
+};
+
+// Типы сущностей для импорта
+export const EntityType = {
+    FLAT: 'FLAT',
+    HOUSE: 'HOUSE',
+    COORDINATES: 'COORDINATES'
+} as const;
+
+export type EntityType = typeof EntityType[keyof typeof EntityType];
+
+// Операция импорта
+export type ImportOperation = {
+    type: EntityType;
+    operation?: 'CREATE' | 'UPDATE' | 'DELETE';
+    data: Flat | House | Coordinates | { id: number };
+};
+
+// История импорта
+export type ImportHistory = {
+    id: number;
+    operationTime: string;
+    objectsCount: number;
+    changesDescription: string; // JSON string
 };

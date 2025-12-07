@@ -31,6 +31,9 @@ const menuItems = [
     { text: 'Добавить квартиру', path: '/flats/create' },
     { text: 'Добавить дом', path: '/houses/create' },
     { divider: true },
+    { text: 'Импорт', path: '/import' },
+    { text: 'История импорта', path: '/import/history' },
+    { divider: true },
     { text: 'Специальные операции', path: '/special' },
 ];
 

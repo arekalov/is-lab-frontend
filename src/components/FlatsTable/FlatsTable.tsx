@@ -147,6 +147,14 @@ const columns: Column[] = [
         filterOptions: Object.entries(viewLabels).map(([value, label]) => ({ value, label }))
     },
     { 
+        id: 'floor', 
+        label: 'Этаж', 
+        minWidth: 80,
+        sortable: true,
+        filterable: true,
+        filterType: 'number'
+    },
+    { 
         id: 'house', 
         label: 'Дом', 
         minWidth: 100,
