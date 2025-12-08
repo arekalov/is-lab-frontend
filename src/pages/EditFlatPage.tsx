@@ -109,6 +109,7 @@ export const EditFlatPage: FC = () => {
                 livingSpace: Number(data.livingSpace),
                 furnish: data.furnish,
                 view: data.view,
+                floor: Number(data.floor),
                 houseId: data.houseId ? Number(data.houseId) : null
             };
             
